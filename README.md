@@ -1,3 +1,3 @@
-사용자 환경 변수
+# 백신 대처법
 
-GOTMPDIR = %userprofile%\AppData\Local\Temp\go\
+사용자 환경 변수 -> GOTMPDIR = %userprofile%\AppData\Local\Temp\go\
