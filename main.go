@@ -1,12 +1,13 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/rosenrose/go-learn/something"
-)
+import "fmt"
 
 func main() {
-    fmt.Println("Hello, World!")
-    something.SayBye()
+	const name string = "name"
+	var nanan string = "aabc"
+    nanan = "Dfsdf"
+
+    abc := "aaaa"
+    abc = "BBB"
+	fmt.Println(nanan, abc)
 }
