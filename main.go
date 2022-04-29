@@ -2,35 +2,23 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
 func main() {
-	fmt.Println(multiply(2, 3))
-
-	length, upper := lenAndUpper("haha")
-	length2, _ := lenAndUpperNaked("vobobo")
-
-	fmt.Println(length, upper, length2)
-
-	repeat("a", "b", "C", "dfsd af")
+	fmt.Println(repeat(15, 13, 11, 9, 7))
 }
 
-func multiply(a, b int) int {
-	defer fmt.Println("done")
-	return a * b
-}
+func repeat(numbers ...int) int {
+	total := 0
 
-func lenAndUpper(name string) (int, string) {
-	return len(name), strings.ToUpper(name)
-}
+	for index, number := range numbers {
+		fmt.Println(index, number)
+		total += number
+	}
 
-func repeat(words ...string) {
-	fmt.Println(words)
-}
+	for i := 0; i < len(numbers); i++ {
+		fmt.Println(i, numbers[i])
+	}
 
-func lenAndUpperNaked(name string) (length int, upper string) {
-	length = len(name)
-	upper = strings.ToUpper(name)
-	return
+	return total
 }
