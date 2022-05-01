@@ -4,12 +4,17 @@ import (
 	"fmt"
 )
 
+type person struct {
+	name string
+	age int
+	food []string
+}
+
 func main() {
-	charMap := map[string]int {"a": 123, "b c": 999, "d:f": 3}
+	man := person {"mike", 20, []string {"a", "b"}}
+	woman := person {age: 25, name: "yolo"}
+	a := person {}
 
-	fmt.Println(charMap)
-
-	for key, val := range charMap {
-		fmt.Println(key, val)
-	}
+	fmt.Println(man, man.name, woman)
+	fmt.Println(a)
 }
