@@ -5,13 +5,11 @@ import (
 )
 
 func main() {
-	a := 1
-	b := &a
-	a = 6
-	fmt.Println(a, *b)
-	
-	*b = 3
-	fmt.Println(a, *b)
+	names := [5]string {"a", "b", "C"}
+	names[3] = "asd f"
+	names[4] = "zx cv"
 
-	fmt.Println(a, &a, b, *b, &b)
+	nums := []int {1, 2, 3}
+	nums = append(nums, 4)
+	fmt.Println(names, nums)
 }
