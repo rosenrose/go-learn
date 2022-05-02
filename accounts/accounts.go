@@ -40,3 +40,17 @@ func (a *Account) Withdraw(amount int) error {
 	a.balance -= amount
 	return nil
 }
+
+// ChangeOwner
+func (a *Account) ChangeOwner(newOwner string) {
+	a.owner = newOwner
+}
+
+// Owner of account
+func (a Account) Owner() string {
+	return a.owner
+}
+
+func (a Account) String() string {
+	return fmt.Sprint(a.owner, "'s account. Has: ", a.balance)
+}
