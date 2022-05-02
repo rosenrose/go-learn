@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/rosenrose/go-learn/banking"
+	"github.com/rosenrose/go-learn/accounts"
 )
 
 func main() {
-	account := banking.Account {Owner: "Hans", Balance: 300}
-	fmt.Println(account)
+	account := accounts.NewAccount("Hans")
+	fmt.Println(*account)
 }
