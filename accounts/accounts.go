@@ -38,6 +38,7 @@ func (a *Account) Withdraw(amount int) error {
 
 	fmt.Println("Withdraw", amount)
 	a.balance -= amount
+
 	return nil
 }
 

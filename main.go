@@ -1,15 +1,20 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/rosenrose/go-learn/accounts"
 	"github.com/rosenrose/go-learn/dict"
 )
 
+var errRequestFailed = errors.New("request failed")
+
 func main() {
 	// banking()
-	dictionary()
+	// dictionary()
+	urlChecker()
 }
 
 func banking() {
@@ -80,4 +85,46 @@ func dictionary() {
 	fmt.Println(dictionary)
 	dictionary.Delete("good")
 	fmt.Println(dictionary)
+}
+
+func urlChecker() {
+	urls := []string {
+		"https://www.airbnb.com/",
+		"https://www.google.com/",
+		"https://www.amazon.com/",
+		"https://www.reddit.com/",
+		"https://soundcloud.com/",
+		"https://www.facebook.com/",
+		"https://www.instagram.com/",
+		"https://nomadcoders.co/",
+	}
+	// results := map[string]error {}
+	results := make(map[string]string)
+	
+	for _, url := range urls {
+		result := "Fail"
+		err := hitUrl(url)
+
+		if err == nil {
+			result = "Success"
+		}
+	
+		results[url] = result
+	}
+
+	for url, result := range results {
+		fmt.Println(url, result)
+	}
+}
+
+func hitUrl(url string) error {
+	fmt.Println("Checking:", url)
+	res, err := http.Get(url)
+
+	if err != nil || res.StatusCode >= 400 {
+		fmt.Println(err, res.StatusCode)
+		return errRequestFailed
+	}
+
+	return nil
 }
