@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rosenrose/go-learn/accounts"
@@ -136,13 +137,32 @@ func hitUrl(url string, channel chan<- hitResult) { // send only / <-chan receiv
 	}
 }
 
-var baseUrl = "https://www.indeed.com/jobs?q=python"
+var baseUrl = "https://www.indeed.com/jobs?q=golang"
+
+type extractedJob struct {
+	title    string
+	company  string
+	id       string
+	location string
+	summary  string
+	salary   string
+}
 
 func jobScrapper() {
-	getPages()
+	// totalPages := getPages()
+	var totalJobs []extractedJob
+
+	for i := 0; i < 2; i++ {
+		extractedJobs := getPage(i)
+		totalJobs = append(totalJobs, extractedJobs...)
+	}
+
+	fmt.Println(len(totalJobs), totalJobs)
 }
 
 func getPages() int {
+	var pages int
+
 	res, err := http.Get(baseUrl)
 	checkErr(err)
 	checkCode(res)
@@ -151,11 +171,54 @@ func getPages() int {
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	checkErr(err)
 
-	doc.Find("div.pagination ul.pagination-list li").Each(func(i int, li *goquery.Selection) {
-		fmt.Println(li.Text())
+	doc.Find("div.pagination ul.pagination-list").Each(func(i int, ul *goquery.Selection) {
+		pages = ul.Find("a").Length()
 	})
 
-	return 0
+	return pages
+}
+
+func getPage(page int) []extractedJob {
+	pageUrl := fmt.Sprintf("%v&start=%v", baseUrl, page*10)
+	fmt.Println("Requesting ", pageUrl)
+	var jobs []extractedJob
+
+	res, err := http.Get(pageUrl)
+	checkErr(err)
+	checkCode(res)
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	jobCards := doc.Find("div#mosaic-provider-jobcards > a")
+	jobCards.Each(func(i int, card *goquery.Selection) {
+		job := extractJob(card)
+		jobs = append(jobs, job)
+	})
+
+	return jobs
+}
+
+func extractJob(card *goquery.Selection) extractedJob {
+	title, _ := card.Find("h2.jobTitle span[title]").Attr("title")
+	company := cleanString(card.Find("span.companyName").Text())
+	id, _ := card.Attr("data-jk")
+	location := cleanString(card.Find("div.companyLocation").Text())
+	summary := cleanString(card.Find("div.job-snippet").Text())
+
+	salary := ""
+	salaryDiv := card.Find(".salary-snippet-container, .estimated-salary-container")
+	if salaryDiv != nil {
+		salary = cleanString(salaryDiv.Text())
+	}
+	// fmt.Println(title, company, id, location, summary, salary)
+
+	return extractedJob{title: title, company: company, id: id, location: location, summary: summary, salary: salary}
+}
+
+func cleanString(str string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
 func checkErr(err error) {
