@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -142,22 +144,23 @@ var baseUrl = "https://www.indeed.com/jobs?q=golang"
 type extractedJob struct {
 	title    string
 	company  string
-	id       string
+	link     string
 	location string
 	summary  string
 	salary   string
 }
 
 func jobScrapper() {
-	// totalPages := getPages()
+	totalPages := getPages()
 	var totalJobs []extractedJob
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < totalPages; i++ {
 		extractedJobs := getPage(i)
 		totalJobs = append(totalJobs, extractedJobs...)
 	}
 
-	fmt.Println(len(totalJobs), totalJobs)
+	fmt.Printf("Extracted %v jobs", len(totalJobs))
+	writeJobs(totalJobs)
 }
 
 func getPages() int {
@@ -183,7 +186,12 @@ func getPage(page int) []extractedJob {
 	fmt.Println("Requesting ", pageUrl)
 	var jobs []extractedJob
 
-	res, err := http.Get(pageUrl)
+	req, err := http.NewRequest("GET", pageUrl, nil)
+	checkErr(err)
+	req.Header.Add("User-Agent", "Crawler")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
 	checkErr(err)
 	checkCode(res)
 	defer res.Body.Close()
@@ -204,6 +212,7 @@ func extractJob(card *goquery.Selection) extractedJob {
 	title, _ := card.Find("h2.jobTitle span[title]").Attr("title")
 	company := cleanString(card.Find("span.companyName").Text())
 	id, _ := card.Attr("data-jk")
+	link := fmt.Sprintf("https://www.indeed.com/viewjob?jk=%v&vjs=3", id)
 	location := cleanString(card.Find("div.companyLocation").Text())
 	summary := cleanString(card.Find("div.job-snippet").Text())
 
@@ -214,7 +223,25 @@ func extractJob(card *goquery.Selection) extractedJob {
 	}
 	// fmt.Println(title, company, id, location, summary, salary)
 
-	return extractedJob{title: title, company: company, id: id, location: location, summary: summary, salary: salary}
+	return extractedJob{title: title, company: company, link: link, location: location, summary: summary, salary: salary}
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	columnTitle := []string{"Title", "Company", "Link", "Location", "Summary", "Salary"}
+	err = writer.Write(columnTitle)
+	checkErr(err)
+
+	for _, job := range jobs {
+		record := []string{job.title, job.company, job.link, job.location, job.summary, job.salary}
+		err := writer.Write(record)
+		checkErr(err)
+	}
 }
 
 func cleanString(str string) string {
