@@ -15,7 +15,7 @@ type Account struct {
 
 // NewAccount creates account
 func NewAccount(owner string) *Account {
-	account := Account {owner: owner, balance: 0}
+	account := Account{owner: owner, balance: 0}
 	return &account
 }
 

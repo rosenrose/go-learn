@@ -23,20 +23,20 @@ func banking() {
 
 	account.Deposit(300)
 	fmt.Println(account.Balance())
-	
+
 	err := account.Withdraw(500)
 	if err != nil {
 		// log.Fatalln(err)
 		fmt.Println(err)
 	}
 	err = account.Withdraw(200)
-	
+
 	account.ChangeOwner("Alice")
 	fmt.Println(account.Owner(), account.Balance(), err)
 }
 
 func dictionary() {
-	dictionary := dict.Dictionary {"hello": "안녕"}
+	dictionary := dict.Dictionary{"hello": "안녕"}
 
 	definition, err := dictionary.Search("bye")
 	if err != nil {
@@ -88,7 +88,7 @@ func dictionary() {
 }
 
 func urlChecker() {
-	urls := []string {
+	urls := []string{
 		"https://www.airbnb.com/",
 		"https://www.google.com/",
 		"https://www.amazon.com/",
@@ -100,7 +100,7 @@ func urlChecker() {
 	}
 	// results := map[string]error {}
 	results := make(map[string]string)
-	
+
 	for _, url := range urls {
 		result := "Fail"
 		err := hitUrl(url)
@@ -108,7 +108,7 @@ func urlChecker() {
 		if err == nil {
 			result = "Success"
 		}
-	
+
 		results[url] = result
 	}
 

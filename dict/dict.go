@@ -5,7 +5,7 @@ import "errors"
 type Dictionary map[string]string
 
 var (
-	errNotFound = errors.New("not found")
+	errNotFound   = errors.New("not found")
 	errWordExists = errors.New("word already exists")
 	errCantUpdate = errors.New("can't update non-existing word")
 )
@@ -51,5 +51,5 @@ func (d Dictionary) Update(word, def string) error {
 
 // Delete word
 func (d Dictionary) Delete(word string) {
-		delete(d, word)
+	delete(d, word)
 }
