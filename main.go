@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -213,7 +214,11 @@ func extractJob(card *goquery.Selection) extractedJob {
 	company := cleanString(card.Find("span.companyName").Text())
 	id, _ := card.Attr("data-jk")
 	link := fmt.Sprintf("https://www.indeed.com/viewjob?jk=%v&vjs=3", id)
+
 	location := cleanString(card.Find("div.companyLocation").Text())
+	regex := regexp.MustCompile(`\+(1 location|1?\d+ locations)`)
+	location = regex.ReplaceAllString(location, "")
+
 	summary := cleanString(card.Find("div.job-snippet").Text())
 
 	salary := ""
