@@ -87,6 +87,11 @@ func dictionary() {
 	fmt.Println(dictionary)
 }
 
+type hitResult struct {
+	err    error
+	status string
+}
+
 func urlChecker() {
 	urls := []string{
 		"https://www.airbnb.com/",
@@ -97,19 +102,18 @@ func urlChecker() {
 		"https://www.facebook.com/",
 		"https://www.instagram.com/",
 		"https://nomadcoders.co/",
+		"https://go.dev/",
+		"https://code.visualstudio.com/",
 	}
-	// results := map[string]error {}
-	results := make(map[string]string)
+	results := map[string]hitResult{}
+	channel := make(chan hitResult)
 
 	for _, url := range urls {
-		result := "Fail"
-		err := hitUrl(url)
+		go hitUrl(url, channel)
+	}
 
-		if err == nil {
-			result = "Success"
-		}
-
-		results[url] = result
+	for _, url := range urls {
+		results[url] = <-channel
 	}
 
 	for url, result := range results {
@@ -117,14 +121,14 @@ func urlChecker() {
 	}
 }
 
-func hitUrl(url string) error {
+func hitUrl(url string, channel chan<- hitResult) { // send only / <-chan receive only
 	fmt.Println("Checking:", url)
 	res, err := http.Get(url)
 
 	if err != nil || res.StatusCode >= 400 {
 		fmt.Println(err, res.StatusCode)
-		return errRequestFailed
+		channel <- hitResult{err: errRequestFailed, status: "Fail"}
+	} else {
+		channel <- hitResult{err: nil, status: "Success"}
 	}
-
-	return nil
 }
