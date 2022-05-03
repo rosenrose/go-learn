@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/rosenrose/go-learn/accounts"
 	"github.com/rosenrose/go-learn/dict"
 )
@@ -14,7 +16,8 @@ var errRequestFailed = errors.New("request failed")
 func main() {
 	// banking()
 	// dictionary()
-	urlChecker()
+	// urlChecker()
+	jobScrapper()
 }
 
 func banking() {
@@ -130,5 +133,39 @@ func hitUrl(url string, channel chan<- hitResult) { // send only / <-chan receiv
 		channel <- hitResult{err: errRequestFailed, status: "Fail"}
 	} else {
 		channel <- hitResult{err: nil, status: "Success"}
+	}
+}
+
+var baseUrl = "https://www.indeed.com/jobs?q=python"
+
+func jobScrapper() {
+	getPages()
+}
+
+func getPages() int {
+	res, err := http.Get(baseUrl)
+	checkErr(err)
+	checkCode(res)
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	checkErr(err)
+
+	doc.Find("div.pagination ul.pagination-list li").Each(func(i int, li *goquery.Selection) {
+		fmt.Println(li.Text())
+	})
+
+	return 0
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func checkCode(res *http.Response) {
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %v %v", res.StatusCode, res.Status)
 	}
 }
