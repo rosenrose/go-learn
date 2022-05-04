@@ -154,10 +154,13 @@ type extractedJob struct {
 func jobScrapper() {
 	totalPages := getPages()
 	var totalJobs []extractedJob
+	channel := make(chan []extractedJob)
 
 	for i := 0; i < totalPages; i++ {
-		extractedJobs := getPage(i)
-		totalJobs = append(totalJobs, extractedJobs...)
+		go getPage(i, channel)
+	}
+	for i := 0; i < totalPages; i++ {
+		totalJobs = append(totalJobs, <-channel...)
 	}
 
 	fmt.Printf("Extracted %v jobs", len(totalJobs))
@@ -182,14 +185,13 @@ func getPages() int {
 	return pages
 }
 
-func getPage(page int) []extractedJob {
+func getPage(page int, mainChannel chan<- []extractedJob) {
 	pageUrl := fmt.Sprintf("%v&start=%v", baseUrl, page*10)
 	fmt.Println("Requesting ", pageUrl)
-	var jobs []extractedJob
 
 	req, err := http.NewRequest("GET", pageUrl, nil)
 	checkErr(err)
-	req.Header.Add("User-Agent", "Crawler")
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36")
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -200,16 +202,21 @@ func getPage(page int) []extractedJob {
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	checkErr(err)
 
+	var jobs []extractedJob
 	jobCards := doc.Find("div#mosaic-provider-jobcards > a")
-	jobCards.Each(func(i int, card *goquery.Selection) {
-		job := extractJob(card)
-		jobs = append(jobs, job)
-	})
+	channel := make(chan extractedJob)
 
-	return jobs
+	jobCards.Each(func(i int, card *goquery.Selection) {
+		go extractJob(card, channel)
+	})
+	for i := 0; i < jobCards.Length(); i++ {
+		jobs = append(jobs, <-channel)
+	}
+
+	mainChannel <- jobs
 }
 
-func extractJob(card *goquery.Selection) extractedJob {
+func extractJob(card *goquery.Selection, channel chan<- extractedJob) {
 	title, _ := card.Find("h2.jobTitle span[title]").Attr("title")
 	company := cleanString(card.Find("span.companyName").Text())
 	id, _ := card.Attr("data-jk")
@@ -228,7 +235,7 @@ func extractJob(card *goquery.Selection) extractedJob {
 	}
 	// fmt.Println(title, company, id, location, summary, salary)
 
-	return extractedJob{title: title, company: company, link: link, location: location, summary: summary, salary: salary}
+	channel <- extractedJob{title: title, company: company, link: link, location: location, summary: summary, salary: salary}
 }
 
 func writeJobs(jobs []extractedJob) {
